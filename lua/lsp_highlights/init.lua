@@ -37,16 +37,19 @@ local handler = {
             local hl_color = get_hl_color(sign_group)
             if not hl_color then goto continue end
 
-            -- Create a temporary highlight group with FOREGROUND color
+            -- Create a highlight group with foreground color only
             local text_hl_group = string.format("DiagTextHL_%s", sign_group)
-            vim.api.nvim_set_hl(0, text_hl_group, { fg = hl_color })  -- fg instead of bg
+            vim.api.nvim_set_hl(0, text_hl_group, { fg = hl_color })
 
-            -- Apply to the entire line using hl_group and range
-            vim.api.nvim_buf_set_extmark(bufnr, namespace, diagnostic.lnum, 0, {
-                hl_group = text_hl_group,
-                end_col = -1,       -- highlight to end of line
-                priority = 10,
-            })
+            -- Use nvim_buf_add_highlight with -1 for end-of-line
+            vim.api.nvim_buf_add_highlight(
+                bufnr,
+                namespace,
+                text_hl_group,
+                diagnostic.lnum,   -- 0-indexed line
+                0,                 -- start column
+                -1                 -- end column (-1 = end of line)
+            )
 
             ::continue::
         end
