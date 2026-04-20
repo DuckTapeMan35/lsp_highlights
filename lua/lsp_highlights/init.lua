@@ -19,11 +19,12 @@ local namespace = vim.api.nvim_create_namespace("DiagnosticLineHighlighter")
 -- The custom diagnostic handler
 local handler = {
     show = function(_, bufnr, diagnostics, _)
-        -- Clear previous highlights for this buffer
+        if type(bufnr) ~= "number" or bufnr == 0 then return end
+        if not vim.api.nvim_buf_is_valid(bufnr) then return end
+
         vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
 
         for _, diagnostic in ipairs(diagnostics) do
-            -- Map severity to the corresponding sign highlight group
             local severity_map = {
                 [vim.diagnostic.severity.ERROR] = "DiagnosticSignError",
                 [vim.diagnostic.severity.WARN]  = "DiagnosticSignWarn",
@@ -31,22 +32,19 @@ local handler = {
                 [vim.diagnostic.severity.HINT]  = "DiagnosticSignHint",
             }
             local sign_group = severity_map[diagnostic.severity]
-            if not sign_group then
-                goto continue
-            end
+            if not sign_group then goto continue end
 
             local hl_color = get_hl_color(sign_group)
-            if not hl_color then
-                goto continue
-            end
+            if not hl_color then goto continue end
 
-            -- Create a temporary highlight group with the exact color
-            local line_hl_group = string.format("DiagLineHL_%s", sign_group)
-            vim.api.nvim_set_hl(0, line_hl_group, { bg = hl_color })
+            -- Create a temporary highlight group with FOREGROUND color
+            local text_hl_group = string.format("DiagTextHL_%s", sign_group)
+            vim.api.nvim_set_hl(0, text_hl_group, { fg = hl_color })  -- fg instead of bg
 
-            -- Apply the highlight to the entire line
+            -- Apply to the entire line using hl_group and range
             vim.api.nvim_buf_set_extmark(bufnr, namespace, diagnostic.lnum, 0, {
-                line_hl_group = line_hl_group,
+                hl_group = text_hl_group,
+                end_col = -1,       -- highlight to end of line
                 priority = 10,
             })
 
