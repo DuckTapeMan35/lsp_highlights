@@ -1,8 +1,5 @@
--- lua/diagnostic-line-highlighter/init.lua
-
 local M = {}
 
--- Default configuration (currently empty, but ready for future options)
 M.config = {}
 
 -- Helper: Get the background color of a highlight group
@@ -21,9 +18,9 @@ local namespace = vim.api.nvim_create_namespace("DiagnosticLineHighlighter")
 
 -- The custom diagnostic handler
 local handler = {
-    show = function(_, _, diagnostics, opts)
+    show = function(_, bufnr, diagnostics, _)
         -- Clear previous highlights for this buffer
-        vim.api.nvim_buf_clear_namespace(opts.bufnr, namespace, 0, -1)
+        vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
 
         for _, diagnostic in ipairs(diagnostics) do
             -- Map severity to the corresponding sign highlight group
@@ -48,9 +45,9 @@ local handler = {
             vim.api.nvim_set_hl(0, line_hl_group, { bg = hl_color })
 
             -- Apply the highlight to the entire line
-            vim.api.nvim_buf_set_extmark(opts.bufnr, namespace, diagnostic.lnum, 0, {
+            vim.api.nvim_buf_set_extmark(bufnr, namespace, diagnostic.lnum, 0, {
                 line_hl_group = line_hl_group,
-                priority = 10, -- Low priority so it doesn't override other LSP highlights
+                priority = 10,
             })
 
             ::continue::
@@ -62,8 +59,6 @@ local handler = {
     end,
 }
 
---- Setup function that registers the handler and configures diagnostics
----@param user_config table|nil Optional configuration (reserved for future options)
 function M.setup(user_config)
     M.config = vim.tbl_deep_extend("force", M.config, user_config or {})
 
