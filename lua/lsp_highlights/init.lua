@@ -4,11 +4,11 @@ M.config = {}
 
 -- Helper: Get the background color of a highlight group
 local function get_hl_color(hl_group_name)
-    local hl = vim.api.nvim_get_hl_by_name(hl_group_name, true)
-    if hl.background then
-        return string.format("#%06x", hl.background)
-    elseif hl.foreground then
-        return string.format("#%06x", hl.foreground)
+    local hl = vim.api.nvim_get_hl(0, { name = hl_group_name })
+    if hl.fg then
+        return string.format("#%06x", hl.fg)
+    elseif hl.bg then
+        return string.format("#%06x", hl.bg)
     end
     return nil
 end
@@ -62,14 +62,19 @@ local handler = {
 }
 
 function M.setup(user_config)
-    M.config = vim.tbl_deep_extend("force", M.config, user_config or {})
+  M.config = vim.tbl_deep_extend("force", M.config, user_config or {})
 
-    -- Register our custom handler
     vim.diagnostic.handlers["diagnostic_line_highlighter"] = handler
 
-    -- Add the handler to the current diagnostic configuration
+    ---@type table  -- <-- bypass strict typing
     local current_config = vim.diagnostic.config() or {}
     current_config.handlers = current_config.handlers or {}
+    -- Avoid duplicates
+    for _, h in ipairs(current_config.handlers) do
+        if h == "diagnostic_line_highlighter" then
+            return
+        end
+    end
     table.insert(current_config.handlers, "diagnostic_line_highlighter")
     vim.diagnostic.config(current_config)
 end
