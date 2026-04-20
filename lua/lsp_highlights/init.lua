@@ -45,6 +45,8 @@ local handler = {
             -- Verify the highlight group exists
             local hl_exists = vim.fn.hlexists(text_hl_group) == 1
             if not hl_exists then goto continue end
+            local line_count = vim.api.nvim_buf_line_count(bufnr)
+            if diagnostic.lnum >= line_count then goto continue end
             local line_content = vim.api.nvim_buf_get_lines(bufnr, diagnostic.lnum, diagnostic.lnum + 1, false)[1]
             local line_length = line_content and #line_content or 0
             vim.api.nvim_buf_set_extmark(bufnr, namespace, diagnostic.lnum, 0, {
