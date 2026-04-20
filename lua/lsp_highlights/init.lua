@@ -19,8 +19,9 @@ local namespace = vim.api.nvim_create_namespace("DiagnosticLineHighlighter")
 -- The custom diagnostic handler
 local handler = {
     show = function(_, bufnr, diagnostics, _)
-        if type(bufnr) ~= "number" or bufnr == 0 then return end
-        if not vim.api.nvim_buf_is_valid(bufnr) then return end
+        if type(bufnr) ~= "number" or (bufnr ~= 0 and not vim.api.nvim_buf_is_valid(bufnr)) then
+            return
+        end
 
         vim.api.nvim_buf_clear_namespace(bufnr, namespace, 0, -1)
 
